@@ -67,6 +67,20 @@ public:
   ///* Sigma point spreading parameter
   double lambda_;
 
+  ///* Normalized Innovation Squared (NIS) for lidar
+  double NIS_las_;
+  ///* Total number of NIS values for lidar
+  double NIS_Count_las_;
+  ///* Number of NIS values greater than 5.99 (0.05 value from Chi-squared distribution for 2 DOF measurement space) for lidar
+  double NIS_HighCount_las_;
+
+
+  ///* Normalized Innovation Squared (NIS) for radar
+  double NIS_rad_;
+  ///* Total number of NIS values for radar
+  double NIS_Count_rad_;
+  ///* Number of NIS values greater than 7.82 (0.05 value from Chi-squared distribution for 3 DOF measurement space) for lidar
+  double NIS_HighCount_rad_;
 
   /**
    * Constructor
@@ -102,6 +116,21 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+  /**
+   * Normalize angles
+   * @param {double} angle: angle to be normalized between -M_PI and M_PI
+   */
+  void NormAngle(double *angle);
+
+  /**
+   * Update the state using the current and predicted measurement
+   * @param {MeasurementPackage} meas_package The measurement at k+1
+   * @param {MatrixXd} Z_sig The sigma points for the predicted measurement
+   * @param {int} n_z Size of measurement vector (2 - lidar, 3 - radar)
+   * @param {VectorXd} z_meas Current measurement vector at k+1
+   */
+   void UpdateState(MeasurementPackage meas_package, MatrixXd Zsig, int n_z, VectorXd z_meas);
 };
 
 #endif /* UKF_H */

@@ -1,11 +1,18 @@
-# Unscented Kalman Filter Project Starter Code
-Self-Driving Car Engineer Nanodegree Program
+# Unscented Kalman Filter Project
 
-In this project utilize an Unscented Kalman Filter to estimate the state of a moving object of interest with noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower that the tolerance outlined in the project rubric. 
+The objective of this project is to implement an unscented kalman filter to estimate the state of a moving vehicle with noisy lidar and radar measurements. The performance of the kalman filter was evaluated by calculating the root mean squared error, RMSE, over the track and ensuring it is lower than the tolerance.
 
-This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
+[//]: # (Image References)
+[image1]: ./pictures/Dataset1.png
+[image2]: ./pictures/Dataset2.png
 
-This repository includes two files that can be used to set up and intall [uWebSocketIO](https://github.com/uWebSockets/uWebSockets) for either Linux or Mac systems. For windows you can use either Docker, VMware, or even [Windows 10 Bash on Ubuntu](https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/) to install uWebSocketIO. Please see [this concept in the classroom](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/16cf4a78-4fc7-49e1-8621-3450ca938b77) for the required version and installation scripts.
+This project requires the following files to run:
+* Utiltiies: Run script 'install-ubuntu.sh' for Linux, 'install-mac.sh' for Mac, 'install-ubuntu.sh' in Ubuntu Bash 16.04 for Windows.
+ * cmake: 3.5
+ * make: 4.1 (Linux and Mac), 3.81 (Windows)
+ * gcc/g++: 5.4
+ * [uWebSocketIO](https://github.com/uNetworking/uWebSockets)
+* Udacity Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
 
 Once the install for uWebSocketIO is complete, the main program can be built and ran by doing the following from the project top directory.
 
@@ -15,14 +22,7 @@ Once the install for uWebSocketIO is complete, the main program can be built and
 4. make
 5. ./UnscentedKF
 
-Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-
-Note that the programs that need to be written to accomplish the project are src/ukf.cpp, src/ukf.h, tools.cpp, and tools.h
-
-The program main.cpp has already been filled out, but feel free to modify it.
-
-Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
-
+The starter code from [Udacity](https://github.com/udacity/CarND-Unscented-Kalman-Filter-Project) was used. The code in the following files were completed to implement the UKF: src/ukf.cpp, src/ukf.h, src/tools.cpp, and src/tools.h. The program main.cpp uses uWebSocketIO to communicate with the simulator.
 
 INPUT: values provided by the simulator to the c++ program
 
@@ -60,33 +60,24 @@ OUTPUT: values provided by the c++ program to the simulator
 4. Run it: `./UnscentedKF` Previous versions use i/o from text files.  The current state uses i/o
 from the simulator.
 
-## Editor Settings
+## Tuned Parameters
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+The initial estimates for the state vector `x` and the covariance matrix `P` were manipulated for the two scenarios/datasets. The initial estimates for `x` was `[px, py, 1.0, 1.0, 0.09]` and `[px, py, 1.0, 3.0, 0.09]` for datasets 1 and 2, respectively. px and py in the initial state vector were position values from the first lidar or radar measurement for the respective dataset. A low speed of 1 m/s was chosen as the initial starting velocity of the car. The initial yaw was chosen to be approximately 60 deg (1 rad) and 170 deg (3 rad) for datasets 1 and 2, respectively. A small yaw rate of 5 deg/s (0.09 rad/s) was chosen for both datasets since the car was not expected to take sharp turns at the beginning of the track. The initial covariance matrix `P` was chosen to be a diagonal matrix with the following values on its main diagonal `[0.15, 0.15, 1, 1, 1]`. The variances of px and py were chosen to be 0.15 in the initial `P` since the initial estimates for px and py would be extracted from the first lidar or radar measurement. Since the standard deviations of the measurement noise from the sensor manufacturer for both lidar and radar are lesser than 1, it is estimated that the initial standard deviation of px and py would be lesser than 1.
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+The other parameters to be tuned include the process noise standard deviations for the linear and angular accelerations. These parameters were tuned (i.e. significantly lowered) roughly at first to crudely follow the car along the track and lower the RMSE. Then, the Normalized Innovation Squared (NIS) value was used to fine-tune the process noise standard deviations by calculating the percentage of NIS values that were greater than 7.82 and 5.99 for radar and lidar, respectively. NIS values follow the Chi-squared distribution and so, the standard deviations were tuned to give a percentage close to 5% (0.05 from the Chi-squared distribution) for 3 DOF (radar) and 2 DOF (lidar) measurement spaces. A set of standard deviations were determined using the NIS values and were then evaluated to see which pair of values gives a lower RMSE. The linear and angular acceleration standard deviations were chosen to be 1.0 and 0.3, respectively.
 
-## Code Style
+## UKF Results
 
-Please stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html) as much as possible.
+The RMSE for the vehicle position (px, py) and velocity (vx, vy) calculated over the track for dataset 1 and 2 satisfied the following tolerance:
+* px <= 0.09
+* py <= 0.10
+* vx <= 0.40
+* vy <= 0.30
 
-## Generating Additional Data
+The following is a snapshot of the final simulator result for datasets 1 and 2:
 
-This is optional!
+![Result-Dataset1][image1]
 
-If you'd like to generate your own radar and lidar data, see the
-[utilities repo](https://github.com/udacity/CarND-Mercedes-SF-Utilities) for
-Matlab scripts that can generate additional data.
+![Result-Dataset2][image2]
 
-## Project Instructions and Rubric
-
-This information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/c3eb3583-17b2-4d83-abf7-d852ae1b9fff/concepts/f437b8b0-f2d8-43b0-9662-72ac4e4029c1)
-for instructions and the project rubric.
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+The RMSE values from the UKF are lower than those from the Extended Kalman Filter (EKF) project, especially the velocity RMSE, because the CTRV model is more precise than the constant velocity model used in the EKF project. In addition, the UKF is known for handling non-linear equations through the calculation of sigma points better than the linearization performed in the EKF.
